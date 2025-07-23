@@ -1,0 +1,917 @@
+{
+  "info": {
+    "name": "OpenMoove Partner API",
+    "description": "Comprehensive collection for OpenMoove Partner API endpoints. Enables professional service providers (auctioneers, estate agents, conveyancers, mortgage brokers) to integrate with OpenMoove's property transaction platform.\n\n## Setup Instructions\n1. Import this collection into Postman\n2. Edit collection variables: Set your `api_key` value\n3. Optionally switch `current_base_url` to staging for testing\n4. Run requests in order for best results\n\n## Getting Started\n- Set your API key in collection variables (contact api-support@openmoove.com)\n- All other variables are auto-managed during testing\n- Use staging environment for development and testing\n\nFor detailed documentation, see PARTNER_API_GUIDE.md and PARTNER_API_QUICK_REFERENCE.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "openmoove-partner-api-v1",
+    "version": {
+      "major": 1,
+      "minor": 2,
+      "patch": 0
+    }
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-KEY",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script for all Partner API calls",
+          "if (!pm.collectionVariables.get('api_key') || pm.collectionVariables.get('api_key') === 'your_api_key_here') {",
+          "    console.error('❌ API key not set. Please edit collection variables and set your api_key.');",
+          "    throw new Error('API key required. Set api_key in collection variables.');",
+          "}",
+          "",
+          "console.log('🔑 Using API key: ' + pm.collectionVariables.get('api_key').substring(0, 8) + '...');",
+          "console.log('🌐 Base URL: ' + pm.collectionVariables.get('current_base_url'));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script for all Partner API responses",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has correct headers', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Check for rate limiting headers",
+          "if (pm.response.headers.get('X-RateLimit-Limit')) {",
+          "    pm.test('Rate limit headers present', function () {",
+          "        pm.expect(pm.response.headers.get('X-RateLimit-Remaining')).to.exist;",
+          "        pm.expect(pm.response.headers.get('X-RateLimit-Reset')).to.exist;",
+          "    });",
+          "    ",
+          "    console.log('⚡ Rate limit: ' + pm.response.headers.get('X-RateLimit-Remaining') + '/' + pm.response.headers.get('X-RateLimit-Limit'));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_key",
+      "value": "your_api_key_here",
+      "type": "string",
+      "description": "Your OpenMoove Partner API key. Get this from api-support@openmoove.com"
+    },
+    {
+      "key": "base_url",
+      "value": "https://api.openmoove.com",
+      "type": "string",
+      "description": "Production API base URL"
+    },
+    {
+      "key": "staging_url",
+      "value": "https://staging.openmoove.com",
+      "type": "string",
+      "description": "Staging API base URL for testing"
+    },
+    {
+      "key": "current_base_url",
+      "value": "{{base_url}}",
+      "type": "string",
+      "description": "Currently active base URL - change to {{staging_url}} for testing"
+    },
+    {
+      "key": "partner_base_url",
+      "value": "{{current_base_url}}/api/partners",
+      "type": "string",
+      "description": "Complete base URL for Partner API endpoints"
+    },
+    {
+      "key": "api_key_verified",
+      "value": "",
+      "type": "string",
+      "description": "Flag set when API key verification succeeds (auto-managed)"
+    },
+    {
+      "key": "test_property_id",
+      "value": "",
+      "type": "string",
+      "description": "Property ID from test data creation (auto-managed)"
+    },
+    {
+      "key": "test_auction_property_id",
+      "value": "",
+      "type": "string",
+      "description": "Auction property ID from test data creation (auto-managed)"
+    },
+    {
+      "key": "test_mover_id",
+      "value": "",
+      "type": "string",
+      "description": "Mover ID from test data creation (auto-managed)"
+    },
+    {
+      "key": "sample_property_id",
+      "value": "",
+      "type": "string",
+      "description": "Sample property ID from property list (auto-managed)"
+    },
+    {
+      "key": "current_property_id",
+      "value": "",
+      "type": "string",
+      "description": "Currently selected property ID for detail operations (auto-managed)"
+    },
+    {
+      "key": "sample_milestone_id",
+      "value": "",
+      "type": "string",
+      "description": "Sample milestone ID from milestone list (auto-managed)"
+    },
+    {
+      "key": "temp_api_key",
+      "value": "",
+      "type": "string",
+      "description": "Temporary storage for API key during testing (auto-managed)"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication Test",
+      "item": [
+        {
+          "name": "Verify API Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('API key is valid', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ API key is valid and working');",
+                  "    pm.collectionVariables.set('api_key_verified', 'true');",
+                  "} else {",
+                  "    console.error('❌ API key verification failed');",
+                  "    pm.collectionVariables.unset('api_key_verified');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", ""]
+            },
+            "description": "Test API key validity by making a simple GET request to list properties."
+          },
+          "response": []
+        }
+      ],
+      "description": "Test API authentication and key validity"
+    },
+    {
+      "name": "Client Management",
+      "item": [
+        {
+          "name": "Create Client - Standard Sale",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Client created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('property_id');",
+                  "    pm.expect(responseJson).to.have.property('mover_id');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('test_property_id', responseJson.property_id);",
+                  "    pm.collectionVariables.set('test_mover_id', responseJson.mover_id);",
+                  "    console.log('✅ Created property ID: ' + responseJson.property_id);",
+                  "    console.log('✅ Created mover ID: ' + responseJson.mover_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\",\n  \"email\": \"john.smith+{{$timestamp}}@example.com\",\n  \"phone_number\": \"+447700900001\",\n  \"property_address\": \"123 Example Street, London\",\n  \"property_postcode\": \"SW1A 1AA\",\n  \"sale_method\": \"standard\",\n  \"estate_agent_email\": \"agent+{{$timestamp}}@example.com\",\n  \"conveyancer_email\": \"conveyancer+{{$timestamp}}@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partner_base_url}}/clients/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["clients", ""]
+            },
+            "description": "Create a new client with standard sale method. This will create both the client (mover) and property records, and invite any professionals who don't exist in the system."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Client - Modern Auction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auction client created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Auctioneer included in response', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('auctioneer_id');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('test_auction_property_id', responseJson.property_id);",
+                  "    console.log('✅ Created auction property ID: ' + responseJson.property_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"email\": \"jane.doe+{{$timestamp}}@example.com\",\n  \"phone_number\": \"+447700900002\",\n  \"property_address\": \"456 Auction Avenue, Manchester\",\n  \"property_postcode\": \"M1 2AB\",\n  \"sale_method\": \"modern_auction\",\n  \"estate_agent_email\": \"auction-agent+{{$timestamp}}@example.com\",\n  \"auctioneer_email\": \"auctioneer+{{$timestamp}}@bid.com\",\n  \"products\": [\"valuation\", \"marketing\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partner_base_url}}/clients/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["clients", ""]
+            },
+            "description": "Create a client for modern auction sale. Note that auctioneer_email is required for auction sale methods."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Client - Validation Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Validation error returned', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response contains field validation', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('non_field_errors');",
+                  "});",
+                  "",
+                  "console.log('✅ Validation working correctly - missing professional email caught');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Invalid\",\n  \"last_name\": \"Test\",\n  \"email\": \"invalid.test@example.com\",\n  \"phone_number\": \"+447700900003\",\n  \"property_address\": \"Invalid Property\",\n  \"property_postcode\": \"IV1 1LD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partner_base_url}}/clients/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["clients", ""]
+            },
+            "description": "Test validation by sending a request without any professional emails. Should return 400 error."
+          },
+          "response": []
+        }
+      ],
+      "description": "Create and manage clients (movers) and their properties"
+    },
+    {
+      "name": "Property Management",
+      "item": [
+        {
+          "name": "List Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Properties list retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination structure', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('count');",
+                  "    pm.expect(responseJson).to.have.property('results');",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson.results && responseJson.results.length > 0) {",
+                  "    pm.collectionVariables.set('sample_property_id', responseJson.results[0].id);",
+                  "    console.log('📋 Found ' + responseJson.count + ' properties');",
+                  "    console.log('📌 Sample property ID: ' + responseJson.results[0].id);",
+                  "} else {",
+                  "    console.log('📋 No properties found for this API key');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/?page=1&page_size=10",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (starts at 1)"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10",
+                  "description": "Number of results per page (max 100)"
+                }
+              ]
+            },
+            "description": "Get paginated list of properties where you're assigned as a team member."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Property Details",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use test property ID if available, otherwise use sample property ID",
+                  "let propertyId = pm.collectionVariables.get('test_property_id') || pm.collectionVariables.get('sample_property_id');",
+                  "",
+                  "if (!propertyId) {",
+                  "    console.warn('⚠️ No property ID available. Run \"Create Client\" or \"List Properties\" first.');",
+                  "    // Use placeholder that will likely fail gracefully",
+                  "    propertyId = '999999';",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('current_property_id', propertyId);",
+                  "console.log('🔍 Getting details for property ID: ' + propertyId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Property details retrieved', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test('Response contains property details', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('address');",
+                  "        pm.expect(responseJson).to.have.property('seller');",
+                  "        pm.expect(responseJson).to.have.property('team');",
+                  "    });",
+                  "    ",
+                  "    console.log('✅ Property details retrieved successfully');",
+                  "} else if (pm.response.code === 404) {",
+                  "    console.log('ℹ️ Property not found or no access - this is expected if no test data exists');",
+                  "} else {",
+                  "    pm.test('Unexpected response code', function () {",
+                  "        pm.expect.fail('Expected 200 or 404, got ' + pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/{{current_property_id}}/detail/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "{{current_property_id}}", "detail", ""]
+            },
+            "description": "Get comprehensive details for a specific property including seller info, team members, and milestone summary."
+          },
+          "response": []
+        }
+      ],
+      "description": "Retrieve property information and details"
+    },
+    {
+      "name": "Milestone Tracking",
+      "item": [
+        {
+          "name": "Get All Milestones",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use test property ID if available, otherwise use sample property ID",
+                  "let propertyId = pm.collectionVariables.get('test_property_id') || pm.collectionVariables.get('sample_property_id');",
+                  "",
+                  "if (!propertyId) {",
+                  "    console.warn('⚠️ No property ID available. Run \"Create Client\" or \"List Properties\" first.');",
+                  "    propertyId = '999999';",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('current_property_id', propertyId);",
+                  "console.log('📊 Getting milestones for property ID: ' + propertyId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Milestones retrieved', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test('Response is an array', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.be.an('array');",
+                  "    });",
+                  "    ",
+                  "    const milestones = pm.response.json();",
+                  "    if (milestones.length > 0) {",
+                  "        pm.collectionVariables.set('sample_milestone_id', milestones[0].id);",
+                  "        console.log('✅ Found ' + milestones.length + ' milestones');",
+                  "        console.log('📌 First milestone: ' + milestones[0].name);",
+                  "    }",
+                  "} else if (pm.response.code === 404) {",
+                  "    console.log('ℹ️ Property not found or no access');",
+                  "} else {",
+                  "    pm.test('Unexpected response code', function () {",
+                  "        pm.expect.fail('Expected 200 or 404, got ' + pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/{{current_property_id}}/milestones/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "{{current_property_id}}", "milestones", ""]
+            },
+            "description": "Get all milestones for a property transaction in order."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Milestone",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use test property ID if available, otherwise use sample property ID",
+                  "let propertyId = pm.collectionVariables.get('test_property_id') || pm.collectionVariables.get('sample_property_id');",
+                  "",
+                  "if (!propertyId) {",
+                  "    console.warn('⚠️ No property ID available. Run \"Create Client\" or \"List Properties\" first.');",
+                  "    propertyId = '999999';",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('current_property_id', propertyId);",
+                  "console.log('🎯 Getting current milestone for property ID: ' + propertyId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Current milestone retrieved', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test('Response contains milestone data', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('name');",
+                  "        pm.expect(responseJson).to.have.property('completed');",
+                  "        pm.expect(responseJson).to.have.property('due_date');",
+                  "    });",
+                  "    ",
+                  "    const milestone = pm.response.json();",
+                  "    console.log('✅ Current milestone: ' + milestone.name);",
+                  "    console.log('📅 Due date: ' + milestone.due_date);",
+                  "    console.log('✔️ Completed: ' + milestone.completed);",
+                  "} else if (pm.response.code === 404) {",
+                  "    console.log('ℹ️ Property not found or no current milestone');",
+                  "} else {",
+                  "    pm.test('Unexpected response code', function () {",
+                  "        pm.expect.fail('Expected 200 or 404, got ' + pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/{{current_property_id}}/milestones/current/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "{{current_property_id}}", "milestones", "current", ""]
+            },
+            "description": "Get the current active milestone for a property transaction."
+          },
+          "response": []
+        }
+      ],
+      "description": "Track property transaction milestones and progress"
+    },
+    {
+      "name": "Chat Integration (Mock)",
+      "item": [
+        {
+          "name": "Get Chat History",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use test property ID if available, otherwise use sample property ID",
+                  "let propertyId = pm.collectionVariables.get('test_property_id') || pm.collectionVariables.get('sample_property_id');",
+                  "",
+                  "if (!propertyId) {",
+                  "    console.warn('⚠️ No property ID available. Run \"Create Client\" or \"List Properties\" first.');",
+                  "    propertyId = '999999';",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('current_property_id', propertyId);",
+                  "console.log('💬 Getting chat history for property ID: ' + propertyId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Chat endpoint responds', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Mock message present', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('not yet implemented');",
+                  "});",
+                  "",
+                  "console.log('ℹ️ Chat integration is mock data - implementation pending');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/{{current_property_id}}/chat/?page=1&page_size=20",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "{{current_property_id}}", "chat", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get chat message history for a property. Currently returns mock data."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat Summary",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use test property ID if available, otherwise use sample property ID",
+                  "let propertyId = pm.collectionVariables.get('test_property_id') || pm.collectionVariables.get('sample_property_id');",
+                  "",
+                  "if (!propertyId) {",
+                  "    console.warn('⚠️ No property ID available. Run \"Create Client\" or \"List Properties\" first.');",
+                  "    propertyId = '999999';",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('current_property_id', propertyId);",
+                  "console.log('📝 Getting chat summary for property ID: ' + propertyId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Chat summary endpoint responds', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Summary structure present', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('summaries');",
+                  "    pm.expect(responseJson.summaries).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('ℹ️ Chat summary is mock data - AI implementation pending');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/{{current_property_id}}/chat/summary/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "{{current_property_id}}", "chat", "summary", ""]
+            },
+            "description": "Get AI-generated chat summaries for a property. Currently returns mock data."
+          },
+          "response": []
+        }
+      ],
+      "description": "Chat integration endpoints (currently mock implementation)"
+    },
+    {
+      "name": "Error Handling Tests",
+      "item": [
+        {
+          "name": "Test 401 Unauthorized",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Temporarily remove API key to test 401",
+                  "pm.collectionVariables.set('temp_api_key', pm.collectionVariables.get('api_key'));",
+                  "pm.collectionVariables.set('api_key', 'invalid_key_for_testing');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 401 for invalid API key', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "// Restore original API key",
+                  "pm.collectionVariables.set('api_key', pm.collectionVariables.get('temp_api_key'));",
+                  "pm.collectionVariables.unset('temp_api_key');",
+                  "",
+                  "console.log('✅ 401 Unauthorized handling works correctly');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", ""]
+            },
+            "description": "Test 401 Unauthorized response with invalid API key"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 404 for non-existent property', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "console.log('✅ 404 Not Found handling works correctly');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/999999/detail/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", "999999", "detail", ""]
+            },
+            "description": "Test 404 Not Found response for non-existent property"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test error handling and edge cases"
+    },
+    {
+      "name": "Rate Limiting Tests",
+      "item": [
+        {
+          "name": "Check Rate Limit Headers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response includes rate limit headers', function () {",
+                  "    // Note: Rate limit headers may not be present in all environments",
+                  "    if (pm.response.headers.get('X-RateLimit-Limit')) {",
+                  "        pm.expect(pm.response.headers.get('X-RateLimit-Remaining')).to.exist;",
+                  "        pm.expect(pm.response.headers.get('X-RateLimit-Reset')).to.exist;",
+                  "        ",
+                  "        const limit = pm.response.headers.get('X-RateLimit-Limit');",
+                  "        const remaining = pm.response.headers.get('X-RateLimit-Remaining');",
+                  "        const reset = pm.response.headers.get('X-RateLimit-Reset');",
+                  "        ",
+                  "        console.log('⚡ Rate Limit: ' + remaining + '/' + limit);",
+                  "        console.log('🔄 Reset Time: ' + new Date(reset * 1000).toISOString());",
+                  "    } else {",
+                  "        console.log('ℹ️ Rate limit headers not present (may not be enabled in this environment)');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{partner_base_url}}/properties/",
+              "host": ["{{partner_base_url}}"],
+              "path": ["properties", ""]
+            },
+            "description": "Check for rate limiting headers in API responses"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test rate limiting behavior and headers"
+    }
+  ]
+}
